@@ -1,0 +1,50 @@
+[
+  {
+    "name": "${name}_app",
+    "image": "123203969087.dkr.ecr.eu-west-1.amazonaws.com/${name}:${version}-${tag}",
+    "cpu": ${cpu},
+    "memory": ${memory},
+    "essential": true,
+    "environment": [
+    ],
+    "portMappings": [
+        {
+            "hostPort": 0,
+            "containerPort": 8080
+        }
+    ],
+    "logConfiguration": {
+        "logDriver": "journald",
+        "options": {
+            "tag": "${name}-${env}"
+        }
+    }
+  },
+  {
+    "name": "${name}_telegraf",
+    "image": "123203969087.dkr.ecr.eu-west-1.amazonaws.com/telegraf-custom:latest",
+    "cpu": 1,
+    "memory": 128,
+    "essential": true,
+    "command": ["-input-filter", "httpjson", "-output-filter", "influxdb"],
+    "links": ["${name}_app"],
+    "environment": [
+        {
+            "name": "ENVIRONMENT",
+            "value": "${env}"
+        },
+        {
+            "name": "INFLUXDB_HOST",
+            "value": "http://influxdb.stack.local:8086"
+        },
+        {
+            "name": "SERVICE_NAME",
+            "value": "${name}"
+        },
+        {
+            "name": "SERVICE_METRICS",
+            "value": "http://${name}_app:8080/metrics"
+        }
+    ]
+  }
+]
